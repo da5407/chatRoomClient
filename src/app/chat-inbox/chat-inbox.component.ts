@@ -1,7 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import{ io} from 'socket.io-client';
+import { CsvDataService } from '../cservice/csv-data.service';
 
 const SOCKET_ENDPOINT = 'localhost:3000';
+
+class CsvData{
+  item1:string;
+  item2:string;
+}
+
 @Component({
   selector: 'app-chat-inbox',
   templateUrl: './chat-inbox.component.html',
@@ -10,7 +17,8 @@ const SOCKET_ENDPOINT = 'localhost:3000';
 export class ChatInboxComponent implements OnInit {
   socket:any;
   message:string;
-  constructor() { }
+  filteredData:CsvData[]=[];
+  constructor(private csvService :CsvDataService) { }
 
   ngOnInit() {
     this.setupSocketConnection();
@@ -48,4 +56,27 @@ export class ChatInboxComponent implements OnInit {
     document.getElementById('message-list').appendChild(element);
 this.message='';
   }
+
+
+
+  saveAsCSV() {
+    if(this.filteredData.length > 0){
+      const items: CsvData[] = [];
+
+      this.filteredData.forEach(line => {
+        let reportDate = new Date(report.date);
+        let csvLine: CsvData = {
+          date: `${reportDate.getDate()}/${reportDate.getMonth()+1}/${reportDate.getFullYear()}`,
+          laborerName: line.laborerName,
+          machineNumber: line.machineNumber,
+          machineName: line.machineName,
+          workingHours: line.hours,
+          description: line.description
+        }
+        items.push(csvLine); 
+      });
+
+      this.csvService.exportToCsv('myCsvDocumentName.csv', items);
+    }
+
 }
